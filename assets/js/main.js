@@ -14,6 +14,7 @@ function simple_ajax_call() {
     let name = prompt("What is your Name?");
     $.post(plugindata.ajax_url, { 'action': 'ajd_simple', 'data': name }, function(data) {
         console.log(data);
+        $("#plugin-demo-result").html("<pre>" + data + "</pre>").show();
     });
 }
 
@@ -38,4 +39,13 @@ function ajd_secure_ajax_call() {
     $.post(plugindata.ajax_url, { 'action': 'ajd_protected', 'secret': 'secret code', 'ajd_nonce': plugindata.ajd_nonce }, function(data) {
         console.log(data);
     });
+}
+
+function ajd_generate_five_unique_key() {
+    let $ = jQuery;
+    $.post(plugindata.ajax_url, { 'action': 'ajd_gen_five_key', 'ajd_nonce': plugindata.ajd_nonce }, function(data) {
+        console.log(data);
+        $("#plugin-demo-result").html("<pre>" + data + "</pre>").show();
+    });
+
 }

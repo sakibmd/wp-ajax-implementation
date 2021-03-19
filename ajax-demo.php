@@ -10,29 +10,30 @@ License: GPLv2 or later
 Text Domain: ajax-demo
  */
 
-add_action( 'admin_enqueue_scripts', function ( $hook ) {
-    if ( 'toplevel_page_ajax-demo' == $hook ) {
-        wp_enqueue_style( 'pure-grid-css', '//unpkg.com/purecss@1.0.1/build/grids-min.css' );
-        wp_enqueue_style( 'ajax-demo-css', plugin_dir_url( __FILE__ ) . "assets/css/style.css", null, time() );
-        wp_enqueue_script( 'ajax-demo-js', plugin_dir_url( __FILE__ ) . "assets/js/main.js", array( 'jquery' ), time(), true );
+add_action('admin_enqueue_scripts', function ($hook) {
+    if ('toplevel_page_ajax-demo' == $hook) {
+        wp_enqueue_style('pure-grid-css', '//unpkg.com/purecss@1.0.1/build/grids-min.css');
+        wp_enqueue_style('ajax-demo-css', plugin_dir_url(__FILE__) . "assets/css/style.css", null, time());
+        wp_enqueue_script('ajax-demo-js', plugin_dir_url(__FILE__) . "assets/js/main.js", array('jquery'), time(), true);
 
         $action = 'ajd_protected';
-        $ajd_nonce = wp_create_nonce( $action );
+        $ajd_nonce = wp_create_nonce($action);
         wp_localize_script(
             'ajax-demo-js',
             'plugindata',
-            array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'ajd_nonce' => $ajd_nonce )
+            array('ajax_url' => admin_url('admin-ajax.php'), 'ajd_nonce' => $ajd_nonce)
         );
 
-        wp_localize_script( 'ajax-demo-js', 'bucket', array('name' => 'Hasin Hayder', 'email' => 'me@hasin.me') );
+        wp_localize_script('ajax-demo-js', 'bucket', array('name' => 'Hasin Hayder', 'email' => 'me@hasin.me'));
     }
-} );
+});
 
-add_action( 'admin_menu', function () {
-    add_menu_page( 'Ajax Demo', 'Ajax Demo', 'manage_options', 'ajax-demo', 'ajaxdemo_admin_page' );
-} );
+add_action('admin_menu', function () {
+    add_menu_page('Ajax Demo', 'Ajax Demo', 'manage_options', 'ajax-demo', 'ajaxdemo_admin_page');
+});
 
-function ajaxdemo_admin_page() {
+function ajaxdemo_admin_page()
+{
     ?>
         <div class="container" style="padding-top:20px;">
             <h1>Ajax Demo</h1>
@@ -43,6 +44,7 @@ function ajaxdemo_admin_page() {
                         <button class="action-button" data-task='unp_ajax_call'>Unprivileged Ajax Call</button>
                         <button class="action-button" data-task='ajd_localize_script'>Why wp_localize_script</button>
                         <button class="action-button" data-task='ajd_secure_ajax_call'>Security with Nonce</button>
+                        <button class="action-button" data-task='ajd_generate_five_unique_key'>Generate 5 unique key</button>
                     </div>
                 </div>
                 <div class="pure-u-3-4">
@@ -56,36 +58,55 @@ function ajaxdemo_admin_page() {
     <?php
 }
 
-add_action( 'wp_ajax_ajd_simple', function () {
+add_action('wp_ajax_ajd_simple', function () {
     $data = $_POST['data'];
-    echo "Hello " . strtoupper( $data );
+    echo "Hello " . strtoupper($data);
     die();
-} );
+});
 
-function ajd_processor() {
+function ajd_processor()
+{
     $data = $_POST['data'];
-    echo "Hello " . strtoupper( $data );
+    echo "Hello " . strtoupper($data);
     die();
 }
-add_action( 'wp_ajax_ajd_priv', 'ajd_processor' ); //logged in user ra access korte parbe
-add_action( 'wp_ajax_nopriv_ajd_priv', 'ajd_processor' );  //nopriv = login kora chara user
+add_action('wp_ajax_ajd_priv', 'ajd_processor'); //logged in user ra access korte parbe
+add_action('wp_ajax_nopriv_ajd_priv', 'ajd_processor'); //nopriv = login kora chara user
 
-add_action( 'wp_ajax_ajd_process_user', function () {
+add_action('wp_ajax_ajd_process_user', function () {
     $person = $_POST['person'];
     echo "The Email Address Of {$person['name']} is {$person['email']}";
     die();
-} );
+});
 
-function ajd_protected() {
+function ajd_protected()
+{
     $secret = $_POST['secret'];
     $nonce = $_POST['ajd_nonce'];
     $action = 'ajd_protected';
-    if ( wp_verify_nonce( $nonce, $action ) ) {
-        echo "Authorized ".strtoupper($secret);
-    }else{
+    if (wp_verify_nonce($nonce, $action)) {
+        echo "Authorized " . strtoupper($secret);
+    } else {
         echo "You are not authorized";
     }
     die();
 }
-add_action( 'wp_ajax_ajd_protected', 'ajd_protected' );
-add_action( 'wp_ajax_nopriv_ajd_protected', 'ajd_protected' );
+add_action('wp_ajax_ajd_protected', 'ajd_protected');
+add_action('wp_ajax_nopriv_ajd_protected', 'ajd_protected');
+
+add_action('wp_ajax_ajd_gen_five_key', function () {
+    $nonce = $_POST['ajd_nonce'];
+    $action = 'ajd_protected';
+    if (wp_verify_nonce($nonce, $action)) {
+        $password_string = '!@#$%/%*&abcdefghijklmnpqrstuwxyzABCDEFGHJKLMNPQRSTUWXYZ0123456789_';
+        $generated_pass = [];
+        for ($i = 0; $i < 5; $i++) {
+            array_push($generated_pass, substr(str_shuffle($password_string), 0, 16));
+        }
+        print_r($generated_pass);
+        echo "First Id: " . $generated_pass[0] . "<br/>Second Id: " . $generated_pass[1] . "<br/>Third Id: " . $generated_pass[2] . "<br/>Fourth Id: " . $generated_pass[3] . "<br/>Fifth Id: " . $generated_pass[4];
+    } else {
+        echo "You are not authorized";
+    }
+    die();
+});
